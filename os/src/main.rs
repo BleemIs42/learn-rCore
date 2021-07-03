@@ -9,6 +9,7 @@
 #![feature(global_asm)]
 //!   panic! 时，获取其中的信息并打印
 #![feature(panic_info_message)]
+
 #![feature(alloc_error_handler)]
 
 #[macro_use]
@@ -33,10 +34,22 @@ pub extern "C" fn rust_main() -> !{
     interrupt::init();
     memory::init();
 
+    // 中断测试
     // unsafe {
     //     llvm_asm!("ebreak"::::"volatile");
     // };
+    
+    dynamicMemoryAllocTest();
 
+    // 注意这里的 KERNEL_END_ADDRESS 为 ref 类型，需要加 *
+    println!("{}", *memory::config::KERNEL_END_ADDRESS);
+
+    unreachable!();
+
+    // loop{}
+}
+
+fn dynamicMemoryAllocTest(){
     // 动态内存分配测试
     use alloc::boxed::Box;
     use alloc::vec::Vec;
@@ -53,8 +66,4 @@ pub extern "C" fn rust_main() -> !{
         assert_eq!(value, i);
     }
     println!("heap test passed");
-
-    unreachable!();
-
-    // loop{}
 }
