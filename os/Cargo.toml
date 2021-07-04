@@ -9,6 +9,8 @@ edition = "2018"
 riscv = { git = "https://github.com/rcore-os/riscv", features = ["inline-asm"] }
 buddy_system_allocator = "0.7"
 lazy_static = { version = "1.4.0", features = ["spin_no_std"]}
+spin = "0.9.1"
+algorithm = { path = 'src/algorithm' }
 
 
 # panic 时直接终止，因为我们没有实现堆栈展开的功能

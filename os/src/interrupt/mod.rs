@@ -13,5 +13,5 @@ mod timer;
 pub fn init() {
     handler::init();
     timer::init();
-    println!("mod interrupt timer initialized");
+    println!("==> mod interrupt timer initialized");
 }
