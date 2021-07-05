@@ -1,8 +1,8 @@
 # learn-rCore
 Rust OS Learning
 
-[rCore-Tutorial](https://github.com/rcore-os/rCore-Tutorial)
-[rCore-Tutorial-deploy](https://rcore-os.github.io/rCore-Tutorial-deploy/)
+[rCore-Tutorial](https://github.com/rcore-os/rCore-Tutorial)    
+[rCore-Tutorial-deploy](https://rcore-os.github.io/rCore-Tutorial-deploy/)    
 
 # Env
 ```bash
