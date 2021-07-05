@@ -12,6 +12,8 @@
 
 #![feature(alloc_error_handler)]
 
+use crate::sbi::shutdown;
+
 #[macro_use]
 mod console;
 mod panic;
@@ -38,8 +40,9 @@ pub extern "C" fn rust_main() -> !{
     // interrupt_test();
     dynamic_memory_alloc_test();
     physical_memory_alloc_test();
+    kernel_remap_test();
 
-    unreachable!();
+    shutdown();
     // loop{}
 }
 
@@ -87,3 +90,16 @@ fn physical_memory_alloc_test(){
     }
     println!("==> memory alloc test passed");
 }
+
+fn kernel_remap_test(){
+    let remap = memory::mapping::MemorySet::new_kernel().unwrap();
+    remap.activate();
+
+    println!("==> kernel remapped test passed");
+}
+
+
+
+
+
+
