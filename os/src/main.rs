@@ -69,10 +69,13 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
 fn file_system_test(){
 
     let process = Process::new_kernel().unwrap();
-
     PROCESSOR
         .lock()
-        .add_thread(Thread::new(process.clone(), simple as usize, Some(&[0])).unwrap());
+        .add_thread(create_kernel_thread(
+            process.clone(),
+            simple as usize, 
+            Some(&[0])
+        ));
 
     // 把多余的 process 引用丢弃掉
     drop(process);
@@ -89,8 +92,6 @@ fn simple(id: usize) {
         .expect("failed to mkdir /tmp");
     // 输出根文件目录内容
     fs::ls("/");
-
-    panic!("file system test passed");
 }
 
 fn thread_test() {
