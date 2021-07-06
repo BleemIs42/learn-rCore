@@ -1,5 +1,6 @@
 //! 负责分配 / 回收的数据结构
 
+mod segment_tree_allocator;
 mod stacked_allocator;
 mod bitmap_vector_allocator;
 
@@ -12,7 +13,6 @@ pub trait Allocator {
     /// 回收一个元素
     fn dealloc(&mut self, index: usize);
 }
-
 /// 向量分配器：固定容量，每次分配 / 回收一个带有对齐要求的连续向量
 ///
 /// 参数和返回值中的 usize 表示第 n 个字节，不需要考虑起始地址
@@ -25,10 +25,11 @@ pub trait VectorAllocator {
     fn dealloc(&mut self, start: usize, size: usize, align: usize);
 }
 
-pub use stacked_allocator::StackedAllocator;
 pub use bitmap_vector_allocator::BitmapVectorAllocator;
 
-/// 默认使用的分配器
-pub type AllocatorImpl = StackedAllocator;
+pub use segment_tree_allocator::SegmentTreeAllocator;
+pub use stacked_allocator::StackedAllocator;
 
 pub type VectorAllocatorImpl = BitmapVectorAllocator;
+/// 默认使用的分配器
+pub type AllocatorImpl = StackedAllocator;
