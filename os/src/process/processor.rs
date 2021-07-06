@@ -127,4 +127,27 @@ impl Processor {
         let thread = self.current_thread.take().unwrap();
         self.scheduler.remove_thread(&thread);
     }
+
+    /// 第一次开始运行
+    ///
+    /// 从 `current_thread` 中取出 [`Context`]，然后直接调用 `interrupt.asm` 中的 `__restore`
+    /// 来从 `Context` 中继续执行该线程。
+    ///
+    /// 注意调用 `run()` 的线程会就此步入虚无，不再被使用
+    pub fn run(&mut self) -> ! {
+        // interrupt.asm 中的标签
+        extern "C" {
+            fn __restore(context: usize);
+        }
+        // 从 current_thread 中取出 Context
+        if self.current_thread.is_none() {
+            panic!("no thread to run, shutting down");
+        }
+        let context = self.current_thread().prepare();
+        // 从此将没有回头
+        unsafe {
+            __restore(context as usize);
+        }
+        unreachable!()
+    }
 }

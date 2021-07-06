@@ -28,6 +28,7 @@ mod panic;
 mod process;
 mod sbi;
 mod drivers;
+mod fs;
 
 extern crate alloc;
 
@@ -51,16 +52,45 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     interrupt::init();
     memory::init();
     drivers::init(dtb_pa);
+    fs::init();
 
     // interrupt_test();
     dynamic_memory_alloc_test();
     physical_memory_alloc_test();
 
-    // kernel_remap_test();  // conflict with thread_test()
-    thread_test();
+    // conflict test below
+    // kernel_remap_test(); 
+    // thread_test();
+    file_system_test();
 
     shutdown();
-    // loop{}
+}
+
+fn file_system_test(){
+
+    let process = Process::new_kernel().unwrap();
+
+    PROCESSOR
+        .lock()
+        .add_thread(Thread::new(process.clone(), simple as usize, Some(&[0])).unwrap());
+
+    // 把多余的 process 引用丢弃掉
+    drop(process);
+
+    run_first_thread();
+}
+
+/// 测试任何内核线程都可以操作文件系统和驱动
+fn simple(id: usize) {
+    println!("hello from thread id {}", id);
+    // 新建一个目录
+    fs::ROOT_INODE
+        .create("tmp", rcore_fs::vfs::FileType::Dir, 0o666)
+        .expect("failed to mkdir /tmp");
+    // 输出根文件目录内容
+    fs::ls("/");
+
+    panic!("file system test passed");
 }
 
 fn thread_test() {
@@ -78,7 +108,13 @@ fn thread_test() {
             ));
         }
     }
+    run_first_thread();
+}
+fn sample_process(id: usize) {
+    println!("hello from kernel thread {}", id);
+}
 
+fn run_first_thread(){
     extern "C" {
         fn __restore(context: usize);
     }
@@ -86,9 +122,8 @@ fn thread_test() {
     let context = PROCESSOR.lock().prepare_next_thread();
     // 启动第一个线程
     unsafe { __restore(context as usize) };
-}
-fn sample_process(id: usize) {
-    println!("hello from kernel thread {}", id);
+
+    unreachable!();
 }
 
 /// 创建一个内核进程
