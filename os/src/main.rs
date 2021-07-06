@@ -27,10 +27,12 @@ mod memory;
 mod panic;
 mod process;
 mod sbi;
+mod drivers;
 
 extern crate alloc;
 
 use alloc::sync::Arc;
+use memory::PhysicalAddress;
 use process::*;
 
 // 汇编编写的程序入口，具体见该文件
@@ -38,14 +40,17 @@ global_asm!(include_str!("entry.asm"));
 
 /// Rust 的入口函数
 /// 在 `_start` 为我们进行了一系列准备之后，这是第一个被调用的 Rust 函数
+/// _hart_id: HART，Hardware Thread，硬件线程，可以理解为执行的 CPU 核
+/// dtb_pa: DTB，Device Tree Blob, 设备树二进制对象
 #[no_mangle]
-pub extern "C" fn rust_main() -> ! {
+pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     println!("Boot success!\n");
     println!("Hello rCore-Tutorial!");
 
     // 初始化各种模块
     interrupt::init();
     memory::init();
+    drivers::init(dtb_pa);
 
     // interrupt_test();
     dynamic_memory_alloc_test();
