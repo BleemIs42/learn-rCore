@@ -92,7 +92,7 @@ fn supervisor_external(context: &mut Context) -> *mut Context {
         if c == '\r' as usize {
             c = '\n' as usize;
         }
-        // STDIN.push(c as u8);
+        STDIN.push(c as u8);
     }
     context
 }
