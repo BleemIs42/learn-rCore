@@ -29,12 +29,15 @@ mod process;
 mod sbi;
 mod drivers;
 mod fs;
+mod kernel;
 
 extern crate alloc;
 
 use alloc::sync::Arc;
 use memory::PhysicalAddress;
 use process::*;
+use xmas_elf::ElfFile;
+use fs::{INodeExt};
 
 // 汇编编写的程序入口，具体见该文件
 global_asm!(include_str!("entry.asm"));
@@ -61,7 +64,8 @@ pub extern "C" fn rust_main(_hart_id: usize, dtb_pa: PhysicalAddress) -> ! {
     // conflict test below
     // kernel_remap_test(); 
     // thread_test();
-    file_system_test();
+    // file_system_test();
+    user_process_test("hello_world");
 
     shutdown();
 }
@@ -143,19 +147,28 @@ pub fn create_kernel_thread(
     thread
 }
 
-// /// 创建一个用户进程，从指定的文件名读取 ELF
-// pub fn create_user_process(name: &str) -> Arc<Thread> {
-//     // 从文件系统中找到程序
-//     let app = ROOT_INODE.find(name).unwrap();
-//     // 读取数据
-//     let data = app.readall().unwrap();
-//     // 解析 ELF 文件
-//     let elf = ElfFile::new(data.as_slice()).unwrap();
-//     // 利用 ELF 文件创建线程，映射空间并加载数据
-//     let process = Process::from_elf(&elf, true).unwrap();
-//     // 再从 ELF 中读出程序入口地址
-//     Thread::new(process, elf.header.pt2.entry_point() as usize, None).unwrap()
-// }
+/// 创建一个用户进程，从指定的文件名读取 ELF
+pub fn user_process_test(name: &str) {
+    let kernel_process = Process::new_kernel().unwrap();
+    // 从文件系统中找到程序
+    let app = fs::ROOT_INODE.find(name).unwrap();
+    // 读取数据
+    let data = app.readall().unwrap();
+    // 解析 ELF 文件
+    let elf = ElfFile::new(data.as_slice()).unwrap();
+    // 利用 ELF 文件创建线程，映射空间并加载数据
+    let process = Process::from_elf(&elf, true).unwrap();
+    // 再从 ELF 中读出程序入口地址
+    PROCESSOR
+        .lock()
+        .add_thread(create_kernel_thread(
+            process,
+            elf.header.pt2.entry_point() as usize, 
+            None
+        ));
+
+    run_first_thread();
+}
 
 /// 内核线程需要调用这个函数来退出
 fn kernel_thread_exit() {

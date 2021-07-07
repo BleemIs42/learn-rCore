@@ -1,8 +1,8 @@
 //! 进程 [`Process`]
 
 use super::*;
-// use crate::fs::*;
-// use xmas_elf::ElfFile;
+use crate::fs::*;
+use xmas_elf::ElfFile;
 
 /// 进程的信息
 pub struct Process {
@@ -15,8 +15,8 @@ pub struct Process {
 pub struct ProcessInner {
     /// 进程中的线程公用页表 / 内存映射
     pub memory_set: MemorySet,
-    // /// 打开的文件描述符
-    // pub descriptors: Vec<Arc<dyn INode>>,
+    /// 打开的文件描述符
+    pub descriptors: Vec<Arc<dyn INode>>,
 }
 
 #[allow(unused)]
@@ -27,21 +27,21 @@ impl Process {
             is_user: false,
             inner: Mutex::new(ProcessInner {
                 memory_set: MemorySet::new_kernel()?,
-                // descriptors: vec![STDIN.clone(), STDOUT.clone()],
+                descriptors: vec![STDIN.clone(), STDOUT.clone()],
             }),
         }))
     }
 
     /// 创建进程，从文件中读取代码
-    // pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<Arc<Self>> {
-    //     Ok(Arc::new(Self {
-    //         is_user,
-    //         inner: Mutex::new(ProcessInner {
-    //             memory_set: MemorySet::from_elf(file, is_user)?,
-    //             descriptors: vec![STDIN.clone(), STDOUT.clone()],
-    //         }),
-    //     }))
-    // }
+    pub fn from_elf(file: &ElfFile, is_user: bool) -> MemoryResult<Arc<Self>> {
+        Ok(Arc::new(Self {
+            is_user,
+            inner: Mutex::new(ProcessInner {
+                memory_set: MemorySet::from_elf(file, is_user)?,
+                descriptors: vec![STDIN.clone(), STDOUT.clone()],
+            }),
+        }))
+    }
 
     /// 上锁并获得可变部分的引用
     pub fn inner(&self) -> spin::MutexGuard<ProcessInner> {
