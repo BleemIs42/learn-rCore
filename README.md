@@ -3,6 +3,7 @@ Rust OS Learning
 
 [rCore-Tutorial](https://github.com/rcore-os/rCore-Tutorial)    
 [rCore-Tutorial-deploy](https://rcore-os.github.io/rCore-Tutorial-deploy/)    
+[清华大学-操作系统 rCore 课程](https://www.bilibili.com/video/BV1eK4y1b7Bn)
 
 # Env
 ```bash
