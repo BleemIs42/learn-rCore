@@ -74,7 +74,7 @@ fn file_system_test(){
     let process = Process::new_kernel().unwrap();
     PROCESSOR
         .lock()
-        .add_thread(create_kernel_thread(
+        .add_thread(create_thread(
             process,
             simple as usize, 
             Some(&[0])
@@ -102,7 +102,7 @@ fn thread_test() {
 
         // 为这个进程创建多个线程，并设置入口均为 sample_process，而参数不同
         for i in 1..9usize {
-            processor.add_thread(create_kernel_thread(
+            processor.add_thread(create_thread(
                 kernel_process.clone(),
                 sample_process as usize,
                 Some(&[i]),
@@ -127,8 +127,8 @@ fn run_first_thread(){
     unreachable!();
 }
 
-/// 创建一个内核进程
-pub fn create_kernel_thread(
+/// 创建一个线程
+pub fn create_thread(
     process: Arc<Process>,
     entry_point: usize,
     arguments: Option<&[usize]>,
@@ -149,7 +149,6 @@ pub fn create_kernel_thread(
 
 /// 创建一个用户进程，从指定的文件名读取 ELF
 pub fn user_process_test(name: &str) {
-    let kernel_process = Process::new_kernel().unwrap();
     // 从文件系统中找到程序
     let app = fs::ROOT_INODE.find(name).unwrap();
     // 读取数据
@@ -161,7 +160,7 @@ pub fn user_process_test(name: &str) {
     // 再从 ELF 中读出程序入口地址
     PROCESSOR
         .lock()
-        .add_thread(create_kernel_thread(
+        .add_thread(create_thread(
             process,
             elf.header.pt2.entry_point() as usize, 
             None
